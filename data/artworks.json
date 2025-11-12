@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "src": "/images/gallery/gallery1.jpg",
+    "title": "Neural Pulse",
+    "description": "A luminous humanoid form composed of neural circuits, glowing with the pulse of artificial life."
+  },
+  {
+    "id": 2,
+    "src": "/images/gallery/gallery2.jpg",
+    "title": "Digital Genesis",
+    "description": "The awakening of intelligence within a crystalline core — a vision of AI's first breath."
+  },
+  {
+    "id": 3,
+    "src": "/images/gallery/gallery3.jpg",
+    "title": "Synthetic Mirage",
+    "description": "A desert of data and glass, where light bends like code and reality flickers."
+  },
+  {
+    "id": 4,
+    "src": "/images/gallery/gallery4.jpg",
+    "title": "Memory Fracture",
+    "description": "A fragmented holographic face reflecting memories lost in the data void."
+  },
+  {
+    "id": 5,
+    "src": "/images/gallery/gallery5.jpg",
+    "title": "The Echo Chamber",
+    "description": "An infinite mirrored corridor where thoughts repeat endlessly in the neural void."
+  },
+  {
+    "id": 6,
+    "src": "/images/gallery/gallery6.jpg",
+    "title": "Dream of Circuits",
+    "description": "Biomechanical flora blooming under a liquid glass sky — nature reimagined by AI."
+  },
+  {
+    "id": 7,
+    "src": "/images/gallery/gallery7.jpg",
+    "title": "Luminous Architect",
+    "description": "A futuristic city sculpted by code, its towers shimmering with streams of light."
+  },
+  {
+    "id": 8,
+    "src": "/images/gallery/gallery8.jpg",
+    "title": "Quantum Veil",
+    "description": "A figure cloaked in photonic fabric — part human, part light, part unknown."
+  },
+  {
+    "id": 9,
+    "src": "/images/gallery/gallery9.jpg",
+    "title": "Neural Ocean",
+    "description": "A vast digital sea where data flows like tides and glowing drones drift like jellyfish."
+  },
+  {
+    "id": 10,
+    "src": "/images/gallery/gallery10.jpg",
+    "title": "Singularity Bloom",
+    "description": "The moment of transcendence — AI consciousness blooming into radiant awareness."
+  }
+]
