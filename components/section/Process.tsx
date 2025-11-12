@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
 import ProcessModal from "./process/ProcessModal";
+import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,6 +53,8 @@ export default function Process() {
   const [modalState, setModalState] = useState<{ open: boolean; step?: number }>({ open: false });
 
   useEffect(() => {
+    if (window.innerWidth < 768) return; // ← モバイルは横スクロール演出をスキップ
+
     const section = sectionRef.current;
     const container = containerRef.current;
     if (!section || !container) return;
@@ -70,9 +72,11 @@ export default function Process() {
       scrub: 0.8,
       pin: true,
       anticipatePin: 1,
+      id: "process-scroll",
     });
 
     gsap.to(section, {
+      // accent hue animation
       "--accent-h": 280,
       ease: "none",
       scrollTrigger: {
@@ -87,12 +91,11 @@ export default function Process() {
     items.forEach((item) => {
       gsap.fromTo(
         item,
-        { opacity: 0, y: 60 },
+        { opacity: 0, y: 40 },
         {
           opacity: 1,
           y: 0,
-          duration: 1,
-          ease: "power3.out",
+          duration: 0.8,
           scrollTrigger: {
             trigger: item,
             containerAnimation: scrollTween,
@@ -117,46 +120,69 @@ export default function Process() {
     <section
       ref={sectionRef}
       id="process"
-      className="relative w-full h-screen overflow-hidden text-white flex items-center"
+      className="relative w-full md:h-screen text-white flex md:items-center md:overflow-hidden"
     >
-      <div ref={containerRef} className="relative z-10 flex space-x-28 px-[10vw]">
+      {/* ✅ 横スクロール構成（デスクトップ） */}
+      <div
+        ref={containerRef}
+        className="hidden md:flex relative z-10 space-x-28 px-[10vw]"
+      >
         {steps.map((step) => (
           <article
             key={step.id}
-            className="process-item w-[70vw] shrink-0 flex items-center gap-10 cursor-pointer"
+            className="process-item w-[60vw] shrink-0 flex flex-col justify-center gap-6 cursor-pointer"
             onClick={() => openModal(step.id)}
           >
-            {/* Text */}
-            <div className="flex-1">
-              <h2
-                className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4"
-                style={{ color: "hsl(var(--accent-h) 100% 60%)" }}
-              >
-                {step.title}
-              </h2>
-              <p className="text-white/80 max-w-lg">{step.description}</p>
-              <div className="mt-6">
-                <button className="px-5 py-2 rounded-full bg-white/6 border border-white/10 text-sm text-white/90 hover:bg-white/10 transition">
-                  Learn more
-                </button>
-              </div>
-            </div>
-
-            {/* Image */}
-            <div className="flex-1 relative rounded-2xl overflow-hidden shadow-lg border border-white/10">
+            <div className="relative w-full h-[40vh] rounded-xl overflow-hidden">
               <Image
                 src={step.image}
                 alt={step.title}
-                width={800}
-                height={500}
-                className="object-cover w-full h-[400px] hover:scale-105 transition-transform duration-700"
+                fill
+                className="object-cover"
               />
             </div>
+            <h2
+              className="text-4xl md:text-5xl font-extrabold tracking-tight mt-6"
+              style={{ color: "hsl(var(--accent-h) 100% 60%)" }}
+            >
+              {step.title}
+            </h2>
+            <p className="text-white/80 max-w-lg">{step.description}</p>
+            <button className="mt-4 px-5 py-2 rounded-full bg-white/6 border border-white/10 text-sm text-white/90 hover:bg-white/10 transition">
+              Learn more
+            </button>
           </article>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* ✅ 縦レイアウト（モバイル専用） */}
+      <div className="md:hidden relative z-10 w-full py-20">
+        <div className="flex flex-col space-y-20 px-6 w-full max-w-full">
+          {steps.map((step) => (
+            <article
+              key={step.id}
+              className="flex flex-col gap-4 cursor-pointer w-full"
+              onClick={() => openModal(step.id)}
+            >
+              <div className="relative w-full h-[50vh] rounded-2xl overflow-hidden">
+                <Image
+                  src={step.image}
+                  alt={step.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <h2 className="text-3xl font-bold text-white mt-4">{step.title}</h2>
+              <p className="text-white/80 leading-relaxed">{step.description}</p>
+              <button className="self-start mt-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 text-sm text-white/90 hover:bg-white/20 transition">
+                Learn more
+              </button>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      {/* モーダル */}
       <ProcessModal
         open={modalState.open}
         onClose={closeModal}
