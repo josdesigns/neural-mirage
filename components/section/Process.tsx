@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ProcessModal from "./process/ProcessModal";
 import Image from "next/image";
+import SectionTitle from "./SectionTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -61,55 +62,102 @@ export default function Process() {
 
     section.style.setProperty("--accent-h", "190");
 
-    const totalScroll = container.scrollWidth - section.clientWidth;
-    const scrollTween = gsap.to(container, { x: -totalScroll, ease: "none" });
+    // レンダリング完了を待ってから計算
+    const initScroll = (): ScrollTrigger | null => {
+      // ScrollTriggerを一度リフレッシュして正確なサイズを取得
+      ScrollTrigger.refresh();
+      
+      // コンテナの実際の幅を取得
+      const containerWidth = container.scrollWidth;
+      const sectionWidth = section.clientWidth;
+      const totalScroll = containerWidth - sectionWidth;
+      
+      if (totalScroll <= 0) return null; // スクロール不要な場合はスキップ
 
-    const st = ScrollTrigger.create({
-      animation: scrollTween,
-      trigger: section,
-      start: "top top",
-      end: () => `+=${container.scrollWidth}`,
-      scrub: 0.8,
-      pin: true,
-      anticipatePin: 1,
-      id: "process-scroll",
-    });
+      const scrollTween = gsap.to(container, { x: -totalScroll, ease: "none" });
 
-    gsap.to(section, {
-      // accent hue animation
-      "--accent-h": 280,
-      ease: "none",
-      scrollTrigger: {
+      const st = ScrollTrigger.create({
+        animation: scrollTween,
         trigger: section,
         start: "top top",
-        end: () => `+=${container.scrollWidth}`,
+        end: () => `+=${totalScroll}`,
         scrub: 0.8,
-      },
-    });
+        pin: true,
+        anticipatePin: 1,
+        id: "process-scroll",
+      });
 
-    const items = container.querySelectorAll<HTMLElement>(".process-item");
-    items.forEach((item) => {
-      gsap.fromTo(
-        item,
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          scrollTrigger: {
-            trigger: item,
-            containerAnimation: scrollTween,
-            start: "left center",
-            end: "right center",
-            toggleActions: "play none none reverse",
-          },
+      gsap.to(section, {
+        // accent hue animation
+        "--accent-h": 280,
+        ease: "none",
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: () => `+=${container.scrollWidth}`,
+          scrub: 0.8,
+        },
+      });
+
+      const items = container.querySelectorAll<HTMLElement>(".process-item");
+      items.forEach((item) => {
+        gsap.fromTo(
+          item,
+          { opacity: 0, y: 40 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            scrollTrigger: {
+              trigger: item,
+              containerAnimation: scrollTween,
+              start: "left center",
+              end: "right center",
+              toggleActions: "play none none reverse",
+            },
+          }
+        );
+      });
+
+      return st;
+    };
+
+    // 少し遅延させてレンダリング完了を待つ
+    let st: ScrollTrigger | null = null;
+    let handleResize: (() => void) | null = null;
+
+    const timeoutId = setTimeout(() => {
+      st = initScroll();
+      
+      // リサイズ時の処理
+      handleResize = () => {
+        if (window.innerWidth < 768) {
+          if (st) {
+            st.kill();
+            st = null;
+          }
+          ScrollTrigger.getAll().forEach((s) => {
+            if (s.vars.id === "process-scroll") s.kill();
+          });
+          return;
         }
-      );
-    });
+        ScrollTrigger.refresh();
+      };
+
+      window.addEventListener("resize", handleResize);
+    }, 100);
 
     return () => {
-      st.kill();
-      ScrollTrigger.getAll().forEach((s) => s.kill());
+      clearTimeout(timeoutId);
+      if (handleResize) {
+        window.removeEventListener("resize", handleResize);
+      }
+      if (st) {
+        st.kill();
+      }
+      ScrollTrigger.getAll().forEach((s) => {
+        if (s.vars.id === "process-scroll") s.kill();
+      });
     };
   }, []);
 
@@ -120,12 +168,13 @@ export default function Process() {
     <section
       ref={sectionRef}
       id="process"
-      className="relative w-full md:h-screen text-white flex md:items-center md:overflow-hidden"
+      className="relative w-full md:h-screen text-white md:items-center md:overflow-hidden"
     >
+      <SectionTitle title="PROCESS" isFixed={true} className="hidden md:block" />
       {/* ✅ 横スクロール構成（デスクトップ） */}
       <div
         ref={containerRef}
-        className="hidden md:flex relative z-10 space-x-28 px-[10vw]"
+        className="hidden md:flex relative z-10 space-x-28 px-[10vw] mt-40"
       >
         {steps.map((step) => (
           <article
@@ -148,15 +197,13 @@ export default function Process() {
               {step.title}
             </h2>
             <p className="text-white/80 max-w-lg">{step.description}</p>
-            <button className="mt-4 px-5 py-2 rounded-full bg-white/6 border border-white/10 text-sm text-white/90 hover:bg-white/10 transition">
-              Learn more
-            </button>
           </article>
         ))}
       </div>
 
       {/* ✅ 縦レイアウト（モバイル専用） */}
       <div className="md:hidden relative z-10 w-full py-20">
+        <SectionTitle title="PROCESS" isFixed={false} className="mb-12 px-8" />
         <div className="flex flex-col space-y-20 px-6 w-full max-w-full">
           {steps.map((step) => (
             <article

@@ -18,7 +18,7 @@ export default function GalleryItem({ src, title, description }: GalleryItemProp
   return (
     <>
       <div
-        className="relative w-[45vw] h-[55vh] shrink-0 cursor-pointer overflow-hidden rounded-2xl"
+        className="relative w-full md:w-[45vw] h-[50vh] md:h-[55vh] shrink-0 cursor-pointer overflow-hidden rounded-2xl"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setIsModalOpen(true)}

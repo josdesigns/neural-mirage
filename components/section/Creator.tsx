@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
+import SectionTitle from "./SectionTitle";
 
 export default function Creator() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -19,16 +20,19 @@ export default function Creator() {
     <section
       id="creator"
       ref={sectionRef}
-      className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+      className="relative w-full min-h-screen md:h-screen flex flex-col md:justify-center md:overflow-hidden pt-24 px-6 md:px-12 py-20 md:py-0"
     >
+      <div className="w-full max-w-7xl mx-auto mb-8 md:mb-12">
+        <SectionTitle title="CREATOR" isFixed={false} />
+      </div>
       {/* 左右2カラム */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 w-full max-w-7xl mx-auto px-8 gap-12 text-white">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 w-full max-w-7xl mx-auto gap-12 md:gap-12 text-white">
         {/* Left: Human Creator */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col justify-center items-start text-left space-y-4"
+          className="flex flex-col justify-center items-start md:items-start text-left space-y-4"
         >
           <h2 className="text-3xl md:text-5xl font-bold tracking-wide">
             HUMAN CREATOR
@@ -51,7 +55,7 @@ export default function Creator() {
           initial={{ opacity: 0, x: 50 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="flex flex-col justify-center items-end text-right space-y-4"
+          className="flex flex-col justify-center items-start md:items-end text-left md:text-right space-y-4"
         >
           <h2 className="text-3xl md:text-5xl font-bold tracking-wide">
             AI SYSTEM
