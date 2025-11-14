@@ -9,78 +9,77 @@ import SectionTitle from "./SectionTitle";
 
 gsap.registerPlugin(ScrollTrigger);
 
-async function waitForImages(container: HTMLElement) {
-  const imgs = Array.from(container.querySelectorAll("img"));
-  if (imgs.length === 0) return;
-
-  await Promise.all(
-    imgs.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          const el = img as HTMLImageElement;
-          if (el.complete) return resolve();
-          el.addEventListener("load", () => resolve(), { once: true });
-          el.addEventListener("error", () => resolve(), { once: true });
-        })
-    )
-  );
-}
-
 export default function Gallery() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (window.innerWidth < 768) return; // モバイルは横スクロール演出をスキップ
 
-    // モバイルは横スクロールなし
-    if (window.innerWidth < 768) return;
+    const section = sectionRef.current;
+    const container = containerRef.current;
+    if (!section || !container) return;
 
-    ScrollTrigger.getAll().forEach((t) => t.kill());
-
-    let st: ScrollTrigger | null = null;
-    let tween: gsap.core.Tween | null = null;
-
-    (async () => {
-      const section = sectionRef.current;
-      const container = containerRef.current;
-      if (!section || !container) return;
-
-      container.style.display = "flex";
-      container.style.flexWrap = "nowrap";
-
-      await new Promise((r) => requestAnimationFrame(r));
-
-      await waitForImages(container);
-
-      await new Promise((r) => requestAnimationFrame(r));
-
+    // レンダリング完了を待ってから計算
+    const initScroll = (): ScrollTrigger | null => {
+      // ScrollTriggerを一度リフレッシュして正確なサイズを取得
+      ScrollTrigger.refresh();
+      
       const totalScroll = container.scrollWidth - section.clientWidth;
-      if (totalScroll <= 0) return;
+      if (totalScroll <= 0) return null; // スクロール不要な場合はスキップ
 
-      tween = gsap.to(container, {
-        x: -totalScroll,
-        ease: "none",
-        paused: true,
-      });
+      const scrollTween = gsap.to(container, { x: -totalScroll, ease: "none" });
 
-      st = ScrollTrigger.create({
-        animation: tween,
+      const st = ScrollTrigger.create({
+        animation: scrollTween,
         trigger: section,
         start: "top top",
-        end: `+=${totalScroll}`,
-        scrub: 1,
+        end: () => `+=${container.scrollWidth}`,
+        scrub: 0.8,
         pin: true,
         anticipatePin: 1,
+        id: "gallery-scroll",
       });
 
-      setTimeout(() => ScrollTrigger.refresh(), 50);
-    })();
+      return st;
+    };
+
+    // 少し遅延させてレンダリング完了を待つ
+    let st: ScrollTrigger | null = null;
+    let handleResize: (() => void) | null = null;
+
+    const timeoutId = setTimeout(() => {
+      st = initScroll();
+      
+      // リサイズ時の処理
+      handleResize = () => {
+        if (window.innerWidth < 768) {
+          if (st) {
+            st.kill();
+            st = null;
+          }
+          ScrollTrigger.getAll().forEach((s) => {
+            if (s.vars.id === "gallery-scroll") s.kill();
+          });
+          return;
+        }
+        ScrollTrigger.refresh();
+      };
+
+      window.addEventListener("resize", handleResize);
+    }, 100);
 
     return () => {
-      st?.kill();
-      tween?.kill();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      clearTimeout(timeoutId);
+      if (handleResize) {
+        window.removeEventListener("resize", handleResize);
+      }
+      if (st) {
+        st.kill();
+      }
+      ScrollTrigger.getAll().forEach((s) => {
+        if (s.vars.id === "gallery-scroll") s.kill();
+      });
     };
   }, []);
 
@@ -88,28 +87,25 @@ export default function Gallery() {
     <section
       ref={sectionRef}
       id="gallery"
-      className="relative w-full md:h-screen min-h-screen"
+      className="relative w-full md:h-screen text-white md:items-center md:overflow-hidden pt-24 md:pt-0"
     >
       <SectionTitle title="GALLERY" isFixed={true} className="hidden md:block" />
-
-      {/* PC: 横スクロール */}
-      <div className="hidden md:block">
-        <div
-          ref={containerRef}
-          className="flex space-x-8 px-20 relative z-10 mt-40"
-        >
-          {artworks.map((art) => (
-            <GalleryItem
-              key={art.id}
-              src={art.src}
-              title={art.title}
-              description={art.description}
-            />
-          ))}
-        </div>
+      {/* 横スクロール構成（デスクトップ） */}
+      <div
+        ref={containerRef}
+        className="hidden md:flex relative z-10 space-x-8 px-[10vw] mt-40"
+      >
+        {artworks.map((art) => (
+          <GalleryItem
+            key={art.id}
+            src={art.src}
+            title={art.title}
+            description={art.description}
+          />
+        ))}
       </div>
 
-      {/* SP: 縦スクロール */}
+      {/* 縦レイアウト（モバイル専用） */}
       <div className="md:hidden relative z-10 w-full py-20">
         <SectionTitle title="GALLERY" isFixed={false} className="mb-12 px-6" />
         <div className="flex flex-col space-y-12 px-6 w-full">
