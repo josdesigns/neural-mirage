@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Neural Mirage | Portfolio",
   description: "Next-gen creative studio powered by AI.",
+  icons: {
+    icon: "images/icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
